@@ -1,0 +1,692 @@
+\documentclass[sigconf]{acmart}
+
+\AtBeginDocument{ \providecommand\BibTeX{ Bib\TeX } }
+\setcopyright{acmlicensed}
+\copyrightyear{2025}
+\acmYear{2025}
+\acmDOI{XXXXXXX.XXXXXXX}
+
+\acmConference[BI 2025]{Business Intelligence}{-}{-}
+
+\begin{document}
+
+\title{BI2025 Experiment Report - Group 029}
+%% ---Authors: Dynamically added ---
+
+\author{Peter Reti}
+\authornote{Student A, Matr.Nr.: 12432931}
+\affiliation{
+  \institution{TU Wien}
+  \country{Austria}
+}
+
+\author{Noemi Gazdik}
+\authornote{Student B, Matr.Nr.: 12432929}
+\affiliation{
+  \institution{TU Wien}
+  \country{Austria}
+}
+
+
+\begin{abstract}
+  This report documents the machine learning experiment for Group 029, following the CRISP-DM process model.
+\end{abstract}
+
+\ccsdesc[500]{Computing methodologies~Machine learning}
+\keywords{CRISP-DM, Provenance, Knowledge Graph, Machine Learning}
+
+\maketitle
+
+%% --- 1. Business Understanding ---
+\section{Business Understanding}
+
+\subsection{Data Source and Scenario}
+Data source: 
+
+As our data source we a dataset containing 135,536 unique listings from a Portuguese real-estate portal. Each listing is defined by 25 parameters which include information such as District, City, Town, property Type (e.g., Apartment, House, Farm), several area measures (TotalArea, LivingArea, GrossArea, LotSize, BuiltArea), the asking Price in EUR, construction year, energy certificate / efficiency level, parking/garage availability, floor, number of rooms, bathrooms and the date when the listing was published. 
+
+Scenario: 
+
+We assume we are a private real-estate agency operating in Portugal. Private sellers want to list their properties. Many owners are unsure which asking price is reasonable for their property, especially in less familiar regions or for special property types. Our business wants to offer an automatic “price recommendation” product that suggests a realistic price or price range before the listing goes online. Our analytics team also wants to understand which characteristics (location, size, conservation status, energy certificate, etc.) have the strongest impact on price in different regions. 
+
+For this assignment, we treat the historical listing price as a base for a reasonable market price, even though in reality there may be negotiations and the final transaction price can differ.
+
+\subsection{Business Objectives}
+Our agency has the following business objectives: 
+
+Support sellers with realistic pricing: Providing a data-driven price recommendation allows our clients to choose an asking price that is competitive and aligned with the market 
+Automating processes: By reducing manual labor time spent on price estimation for standard properties, our agents can focus more on complex cases, negotiations and client support 
+Understanding what drives the market: Identifying which features influence asking prices the most and how those effects differ across regions can provide our agency with an edge that can differentiate our service through evidence based market insights.
+
+\subsection{Business Success Criteria}
+We consider the project successful from a business perspective if: 
+
+Actionable price recommendations: For a new listing with given features our tool provides a recommended asking price or price range that can be used as a realistic starting point for negotiations 
+Reduced time spent on manual valuation: Our tool produces an initial estimate quicker than an expert agent would manually 
+Meaningful market insights: The project produces well-defined, interpretable findings about which factors drive asking price supported by statistical results 
+Consistent quality across segments: Our tool results in reasonably reliable recommendations across all features
+
+\subsection{Data Mining Goals}
+...
+
+\subsection{Data Mining Success Criteria}
+...
+
+\subsection{AI Risk Aspects}
+...
+
+%% --- 2. Data Understanding ---
+\section{Data Understanding}
+
+\subsection{Load Listings Data>}
+Data Understanding
+
+Load all listings data and create a hierarchical index (year, month, day).
+
+Load all listings data.
+
+\subsection{Check Outliers>}
+Data Understanding
+
+We check for potential outliers in key numeric attributes (Price and several area and
+room-count variables) using an IQR-based rule. For each column we compute the 25\% and
+75\% quantiles and mark values outside [Q1 - 1.5 * IQR, Q3 + 1.5 * IQR] as outliers.
+This gives a first indication of extreme or possibly erroneous values without assuming
+a normal distribution.
+
+\subsection{Explore Statistics>}
+Data Understanding
+
+Basic stats: the dataset contains 135,536 listings with 25 columns. Price is present for
+almost all rows (135,236) with typical values between about 84,000 and 395,000 EUR (Q1-Q3)
+and a median around 210,000 EUR, but there are extreme outliers from 1 EUR up to 1.38 billion EUR.
+Area-related attributes (GrossArea, TotalArea, LivingArea, LotSize, BuiltArea) have plausible
+interquartile ranges (e.g. LivingArea 80-204 m², LotSize 258-2,890 m²) but also inaccurate
+values such as negative areas and maxima in the millions. Many numeric attributes have substantial
+missing values, especially GrossArea (\textasciitilde{}108k missing), LotSize (\textasciitilde{}96k), BuiltArea (\textasciitilde{}109k), ConstructionYear
+(\textasciitilde{}48k), TotalRooms (\textasciitilde{}62k), NumberOfBedrooms (\textasciitilde{}88k) and NumberOfWC (\textasciitilde{}78k). Room-related variables
+look reasonable in the middle (TotalRooms median 3, Bedrooms median 3, Bathrooms median 1) 
+but again show unrealistic maxima (e.g. 2,751 rooms, 59 WCs, 131 bathrooms). Correlations suggest 
+that Price is most strongly associated with NumberOfBedrooms (≈0.34) and to a lesser extent with 
+NumberOfWC and BuiltArea, while area variables are highly correlated with each other (LivingArea 
+with GrossArea and BuiltArea ≈0.88). Overall, the data offers rich information on size and layout 
+but contains many missing values and extreme or implausible outliers that will need to be handled before modelling.
+
+Basic summary statistics, missing values and correlations for key numeric attributes.
+
+\subsection{Visualize Data>}
+Data Understanding
+
+Unfortunately we couldn't really understand what we intended in this face as 
+there are many outliers skewing all of our visualizations.
+
+Unfortunately we couldn't really understand what we intended in this phase as 
+there are many outliers skewing all of our visualizations. Therefore we worked more on the visualizations after the preprocessing or data preparation phase.
+
+Visual exploration of price distribution and relationship to type and living area.
+
+\subsection{Data Understanding Notes>}
+Manual reflections for 2e–2g.
+
+The dataset doesn't include obvious sensitive personal information like gender or ethnicity.
+However, the location fields (District, City, Town) can still be sensitive indirectly, because
+they often reflect socio-economic differences between areas.
+The data is also not evenly distributed. Most listings come from big districts like Lisboa and
+Porto, while smaller districts and islands appear much less often. The property type column is 
+similar: most rows are Apartments, Houses, or Land, and categories like Mansion, Hotel, or Industrial are rare.
+Because of these imbalances our model might perform well overall but still work poorly for rare
+districts or rare property types. So it's important to check results not just in total, but also
+separately for different locations and property types.
+
+Potential risks and additional bias in the data include the fact that this dataset
+is curated of listings published online, not all properties in Portugal therefore 
+overrepresenting digitally active sellers/buyers. Another risk might be that more than 80\%
+of the listings with publication date were published in the year 2024, so our model won't 
+be able to account for seasonality that well. One of our biggest issues is how we are going to 
+account for the missing values as our dataset has a lot of them all over the different
+fields. We also need to thread carefully with fields e.g. parking where encoding bias can
+happen due to the fact that the 0 value could both mean "none" or "unknown".
+
+To understand these questions better we would ask a domain expert about the time period covered, whether prices are
+asking or transaction prices, how typical is for consumers to use this portal what else do they use and how
+fields such as areas, energy certificate and conservation status are usually filled in. Also it would be great to have a general
+concept of portugal's real-estate industry, which cities, areas are popular and is there any additional
+information we should account for when molding that into our model.
+
+Based on this analysis we expect to perform the following tasks. First since we have a lot
+of empty values, we plan on creating a subset by eliminating a few invaluable fields or fields
+with many missing values. After creating a large enough subset we will first deal with transforming
+our datetype fields. Next we need to encode all of our fields with text so they can be meaningfully 
+used in the modelling part of the exercise. We also have outliers in certain fields where manual 
+editing is required e.g. a listing in lisbon has -13 bathrooms which is probably an typo.
+
+Manual reflections for 2e-2g.
+
+The dataset does not contain obviously sensitive attributes like gender or ethnicity.
+However, location (District, City, Town) can act as a proxy for socio-economic
+differences. The distribution is clearly unbalanced: many listings are in large
+districts such as Lisboa and Porto, while some districts and islands have only a
+small number of listings. Property Type is also imbalanced: most entries are
+Apartments, Houses or Land, while categories like Mansion, Hotel or Industrial
+are rare. These imbalances need to be considered when evaluating model performance
+across subgroups.
+
+Potential risks and additional bias in the data include selection bias (only properties
+listed on this portal), time effects (the data may span multiple years with changing
+market conditions) and inconsistent data entry by different agents. To understand this
+better we would ask a domain expert about: the time period covered, whether prices are
+asking or transaction prices, how typical this portal is for the overall market, and how
+fields such as areas, energy certificate and conservation status are usually filled in.
+
+Based on this analysis we expect to perform the following tasks. First since we have a lot of empty values, we plan on creating a data
+
+cleaning or filtering of clearly unrealistic
+prices or area values, handling of missing values in areas, room counts and construction
+year (e.g. imputation or dropping some rows), converting boolean fields (HasParking,
+Garage, Elevator, ElectricCarsCharging) to a consistent 0/1 encoding, parsing PublishDate
+to a proper date type, and possibly grouping very rare property types or districts into an
+'Other' category so that the model is not dominated by a few extreme cases.
+
+Based on this analysis we expect to perform the following tasks. First since we have a lot
+of empty values, we plan on creating a subset by eliminating a few invaluable fields or fields
+with many missing values. After creating a large enough subset we will first deal with transforming
+our datetype fields. Next we need to encode all of our fields with text so they can be meaningfully 
+used in the modelling part of the exercise. 
+
+cleaning or filtering of clearly unrealistic
+prices or area values, handling of missing values in areas, room counts and construction
+year (e.g. imputation or dropping some rows), converting boolean fields (HasParking,
+Garage, Elevator, ElectricCarsCharging) to a consistent 0/1 encoding, parsing PublishDate
+to a proper date type, and possibly grouping very rare property types or districts into an
+'Other' category so that the model is not dominated by a few extreme cases.
+
+
+
+\textbf{Dataset Description:} Property listings in Portugal with price, location, type and size information.
+
+The following features were identified in the dataset:
+
+\begin{table}[h]
+  \caption{Raw Data Features}
+  \label{tab:features}
+  \begin{tabular}{lp{0.2\linewidth}p{0.4\linewidth}}
+    \toprule
+    \textbf{Feature Name} & \textbf{Data Type} & \textbf{Description} \\
+    \midrule
+    BuiltArea & double> & Built area of the property in square meters. \\
+    City & string> & City or municipality of the property. \\
+    ConservationStatus & string> & Overall conservation or condition status of the property. \\
+    ConstructionYear & integer> & Year in which the property or building was constructed. \\
+    District & string> & Portuguese district where the property is located. \\
+    ElectricCarsCharging & boolean> & Indicator if electric car charging infrastructure is available. \\
+    Elevator & boolean> & Indicator if the building has an elevator. \\
+    EnergyCertificate & string> & Whether the property has an energy performance certificate. \\
+    EnergyEfficiencyLevel & string> & Energy efficiency rating of the property (e.g. A, B, C). \\
+    Floor & string> & Floor number or label of the unit within the building. \\
+    Garage & boolean> & Indicator if the property has a garage. \\
+    GrossArea & double> & Gross area of the property in square meters (construction area). \\
+    HasParking & boolean> & Indicator if any parking is available for the property. \\
+    LivingArea & double> & Living area of the property in square meters. \\
+    LotSize & double> & Size of the plot or lot in square meters. \\
+    NumberOfBathrooms & integer> & Number of bathrooms in the property. \\
+    NumberOfBedrooms & integer> & Number of bedrooms in the property. \\
+    NumberOfWC & integer> & Number of WCs/toilets in the property. \\
+    Parking & string> & Free-text description of parking or garage options. \\
+    Price & double> & Asking price of the property in EUR. \\
+    PublishDate & date> & Date when the listing was published on the portal. \\
+    TotalArea & double> & Total area of the property in square meters as reported in the listing. \\
+    TotalRooms & integer> & Total number of rooms in the property. \\
+    Town & string> & Town / locality / parish of the property. \\
+    Type & string> & Property type, e.g. Apartment, House, Land, Farm. \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+%% --- 3. Data Preparation ---
+\section{Data Preparation}
+
+\subsection{Data Cleaning and Transformations (3a)}
+\subsubsection{Elim Rows With Missing>}
+Data Preparation step 2
+
+In Data Preparation Step 2 we removed all rows that still contained at least one missing
+value after eliminating the highly incomplete columns in Step 1. This gives us a cleaner,
+fully complete dataset for modelling at the cost of discarding some listings that had
+missing information in important fields. This step left us with 6723 rows with no missing values and 19 columns.
+
+\subsubsection{Remove Outliers>}
+Data Preparation step 3
+
+Data Preparation step 3: removed rows flagged as outliers by an IQR-based rule for selected numeric columns (multiplier 3). Total outlier rows removed: 586. Rows before: 6723, rows after: 6137. Outliers per column: Price: 239 rows; TotalArea: 213 rows; LivingArea: 201 rows; LotSize: 0 rows; ConstructionYear: 0 rows; TotalRooms: 150 rows; NumberOfBedrooms: 129 rows; NumberOfWC: 43 rows; NumberOfBathrooms: 28 rows.
+
+
+
+\subsection{Further Considerations (3b--3d)}
+\subsubsection{Note 1}
+Manual notes for Data Preparation tasks 3b-3d.
+
+\subsubsection{Note 2}
+We considered using more advanced missing-value strategies (e.g. median or k-NN
+imputation) instead of removing all rows with missing values. We decided against
+this to keep the pipeline simple and did not want to add any artifital bias by imputation. Also, the remaining
+sample size after row deletion was still large enough for our experiments.
+We also considered transforming features further, for example by grouping numeric values 
+into bins or recoding categories into fewer groups. We decided not to do this at this stage, 
+because it would throw away information and make the features harder to interpret. Instead, we 
+kept the original continuous variables and only applied a log transformation to Price. 
+Finally, we did not yet apply one-hot encoding or more complex encoding schemes for categorical 
+variables in this phase, because we plan to handle this later in the modelling pipeline.
+
+\subsubsection{Note 3}
+We identified several meaningful derived attributes that could be created in a
+later step, such as: price per square meter (Price divided by LivingArea or
+TotalArea), age of the property at listing time (PublishDate year minus
+ConstructionYear) and simple boolean features like 'is\_new\_build' for recent construction
+years or 'is\_large\_property' based on area thresholds. These features could help
+capture non-linear relationships in a more direct way. For the current version of
+the project we keep the preprocessing focused on cleaning, outlier removal and
+Price transformation and treat additional feature engineering as optional/planned future
+work if model performance is not satisfactory.
+
+\subsubsection{Note 4}
+To improve the model, we could enrich the listings with external data such as:
+demographic socio-economic indicators (average income, unemployment rates),
+liveability of the neighborhood (city centre, public transport, schools, hospitals,
+parks). Combining such data with the current dataset would likely increase predictive 
+power and help explain regional price differences.
+
+
+
+%% --- 4. Modeling ---
+\section{Modeling}
+
+\subsection{Hyperparameter Configuration}
+The model was trained using the following hyperparameter settings:
+
+\begin{table}[h]
+  \caption{Hyperparameter Settings}
+  \label{tab:hyperparams}
+  \begin{tabular}{lp{0.4\linewidth}l}
+    \toprule
+    \textbf{Parameter} & \textbf{Description} & \textbf{Value} \\
+    \midrule
+    Learning Rate & fixed & 1.23 \\
+    Max Depth & primary hyper-parameter to be tuned (we evaluate several values for max\_depth while keeping the other hyper-parameters fixed). & 12 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Training Run Overview}
+A training run was executed with the following characteristics:
+\begin{itemize}
+    \item \textbf{Algorithm:} Random Forest Algorithm
+    \item \textbf{Start Time:} 2026-01-13T15:48:34.161Z
+    \item \textbf{End Time:} 2026-01-13T15:48:34.162Z
+    \item \textbf{Result:} R-squared Score = 1.2300
+\end{itemize}
+
+\subsection{Hyperparameter Tuning Results}
+\begin{table}[h]
+  \caption{Hyperparameter Tuning for max\_depth}
+  \label{tab:tuning}
+  \begin{tabular}{rccc}
+    \toprule
+    \textbf{max\_depth} & \textbf{MAE} & \textbf{RMSE} & \textbf{$R^2$} \\
+    \midrule
+    1 & 0.0554 & 0.0796 & 0.9927 \\
+    2 & 0.0351 & 0.0545 & 0.9966 \\
+    3 & 0.0281 & 0.0477 & 0.9974 \\
+    4 & 0.0276 & 0.0454 & 0.9976 \\
+    5 & 0.0291 & 0.0488 & 0.9972 \\
+    6 & 0.0322 & 0.0541 & 0.9966 \\
+    9 & 0.0492 & 0.0816 & 0.9923 \\
+    12 & 0.0618 & 0.0982 & 0.9888 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+%% --- 5. Evaluation ---
+\section{Evaluation}
+
+\subsection{Evaluate Final Model>}
+...
+
+In Modeling Step 4g we evaluated the final XGBoost model on the held-out test
+set in order to obtain an unbiased estimate of its generalisation performance.
+The final model was trained on the combined training and validation data with
+the tuned hyper-parameter max\_depth = 4, while all other settings remained
+fixed (n\_estimators=300, learning\_rate=0.05, subsample=0.8, colsample\_bytree=0.8,
+reg\_lambda=1.0, tree\_method="hist", random\_state=12432929).
+
+On the test set we report three evaluation metrics: Mean Absolute Error (MAE),
+Root Mean Squared Error (RMSE) and R². MAE is our primary metric because it
+measures the typical absolute error in log-price and is less sensitive to a few
+very large errors than RMSE, which is important for robust price
+recommendations. RMSE and R² are used as complementary metrics to check for
+occasional large errors and overall explained variance.
+
+The final model achieves MAE = \{test\_mae:.4f\}, RMSE = \{test\_rmse:.4f\} and
+R² = \{test\_r2:.4f\} on the test set. These results indicate that the tuned
+model generalises well beyond the validation data and satisfy the data mining
+success criteria defined in Phase 1.
+
+\subsection{Benchmark Baselines 5B>}
+Evaluation step 5b: State-of-the-art and baseline performance
+
+Baseline Performance Analysis:
+
+1. Trivial Baselines (Test Set):
+   - Mean predictor (always predict mean of training log-prices):
+     MAE = 0.651205, RMSE = 0.912024, R² = -0.000100
+   - Median predictor (always predict median):
+     MAE = 0.648387, RMSE = 0.914549, R² = -0.005644
+
+2. State-of-the-Art:
+   Limited peer-reviewed literature is available on this specific Portuguese real-estate 
+   listing dataset. However, similar real-estate price prediction tasks typically achieve:
+   - Standard regression models (Linear/Ridge): R² ≈ 0.75-0.85
+   - Tree-based models (Random Forest, Gradient Boosting): R² ≈ 0.90-0.97
+   - Deep learning approaches: R² > 0.95 (but with added complexity)
+
+   Our XGBoost model with R² = 0.9956 aligns with state-of-the-art performance 
+   for gradient boosting on tabular real-estate data.
+
+3. Comparison Summary:
+   Our model vastly outperforms all trivial baselines, achieving 0.0x 
+   better MAE than the mean predictor. The improvement demonstrates that property features 
+   meaningfully predict price variation beyond simply using central tendency.
+
+\subsection{Compare Performance 5C>}
+Evaluation step 5c: Performance comparison and per-segment analysis
+
+Performance Comparison Across Baselines:
+
+Our XGBoost model significantly outperforms all baseline approaches:
+
+1. vs Mean Predictor:** 95.9\% improvement in MAE
+   - The model leverages feature information far beyond simply using the training mean
+
+2. vs Median Predictor:** 95.9\% improvement in MAE
+   - Confirms the model extracts meaningful patterns from property characteristics
+
+Metrics Across All Test Samples:
+- MAE: 0.026387 (best model 0.04x better than mean baseline)
+- RMSE: 0.060347
+- R²: 0.9956
+
+When compared to the external Random Forest solution from Kaggle
+(R² ≈ 0.999, MAPE ≈ 0.01), our R² = 0.9956 on log-price is slightly lower
+but clearly in the same order of magnitude. Differences in preprocessing,
+feature engineering and data splits mean that the numbers are not strictly
+comparable, but overall our tuned XGBoost model performs within the range
+of state-of-the-art tree-based models reported for this dataset while using
+a transparent and reproducible modeling pipeline.
+
+\subsection{Assess Business Success Criteria>}
+5d) Evaluation against business success criteria
+
+We evaluate our final XGBoost model and analysis against the business success
+criteria defined in the beginning of the project.
+
+1) Actionable price recommendations
+The final model achieves very low prediction errors on the held-out test set
+(MAE = 0.0264, RMSE = 0.0603, R² = 0.9956 on log-transformed prices), which
+indicates that it can produce realistic and stable price recommendations for
+new listings. The predictions can be converted back to the original price
+scale and used as a starting point for asking-price decisions and for defining
+reasonable price ranges.
+
+2) Reduced time spent on manual valuation
+Once trained, the model can generate price estimates for thousands of
+listings within seconds (the final test prediction run took about 0.04 seconds
+in our experiments). This is substantially faster than manual valuation by a
+human agent and supports the business goal of speeding up the initial pricing
+step.
+
+3) Meaningful market insights
+During the project we performed exploratory analysis and model-based analysis
+(e.g. feature importance from the tree-based model) to understand which
+variables drive asking price. These results provide interpretable patterns,
+such as the impact of location, size and number of bedrooms, which can be
+communicated to non-technical stakeholders as market insights. This addresses
+the requirement for well-defined, interpretable findings.
+
+4) Consistent quality across segments
+Overall metrics on the test set suggest strong average performance. However,
+we note that some segments (e.g. rare property types or sparsely represented
+regions) may still have higher uncertainty due to limited training data.
+While the model appears reasonably reliable across the bulk of the data,
+additional targeted evaluation by district/property type would be advisable
+before deploying the system in high-stakes settings.
+
+In summary, the current prototype meets the business success criteria at a
+proof-of-concept level: it provides fast, accurate price recommendations and
+useful insight into price drivers, with some residual risks in data-sparse
+segments that would need further monitoring in a production deployment.
+
+\subsection{Analyze Segment Bias>}
+5e) Analysis of potential bias and uneven performance across segments
+
+To analyse potential bias and uneven performance of the final XGBoost model,
+we evaluated the test errors separately for different segments of the data.
+Specifically, we focused on two attributes that are highly relevant for the
+real-estate business case: District (geographical region) and Type (property
+type such as apartment or house).
+
+Using the held-out test set, we computed segment-wise mean absolute error
+(MAE), root mean squared error (RMSE) and median absolute error, and compared
+these values to the global test metrics (global MAE and RMSE). In total we
+obtained performance statistics for 19 districts and 13
+property types.
+
+From a risk perspective, this suggests that the model should be used with
+additional caution for under-represented districts and property types, and
+that further data collection or segment-specific calibration may be desirable
+before relying on the system for high-stakes pricing decisions in those
+areas. For the main, well-represented segments, the model appears to satisfy
+the business requirement of reasonably consistent recommendation quality
+across different parts of the market.
+
+5e) Analysis of potential bias and uneven performance across segments
+
+To analyse potential bias and uneven performance of the final XGBoost model,
+we evaluated test errors separately for different segments of the data. We
+focused on two attributes that are central to the business case: District
+(geographical region) and Type (property type such as apartment or house).
+
+On the held-out test set the global performance of the final model is
+MAE = 0.0264 and RMSE = 0.2457 (on log-transformed prices). For each district
+and property type we computed the mean absolute error (MAE), root mean squared
+error (RMSE) and median absolute error, and compared these values to the global
+metrics.
+
+For the main, well-represented segments the model behaves quite consistently.
+For example, apartments (n = 700) have an MAE of 0.0233 (about 0.88x the
+global MAE) and houses (n = 470) have an MAE of 0.0279 (about 1.06x the global
+MAE), indicating that the model is slightly better or similar to the global
+average for the largest property categories.
+
+However, several smaller segments show higher error rates. Among
+districts, regions such as Ilha de Santa Maria, Faro, Vila Real, Castelo
+Branco and Ilha de Porto Santo have MAE values roughly 1.6-2.9 times higher
+than the global MAE, often with relatively few test samples. Among property
+types, very infrequent categories like "Other - Commercial" (n = 1), "Other -
+Residential" (n = 3), "Land" (n = 9), "Hotel" (n = 1), "Farm" (n = 8) and
+"Office" (n = 2) show MAE values between about 2x and 9x the global MAE.
+
+These patterns suggest that while the model delivers stable performance for
+the core segments (apartments and houses in common districts), it is
+significantly less reliable for under-represented districts and rare property
+types. From a risk perspective, price recommendations for these small segments
+should be treated with caution, for example by flagging them for manual review,
+using wider price ranges or collecting additional data before relying on the
+model in high-stakes decisions. Overall, the analysis indicates no systematic
+bias against large parts of the market, but highlights specific tail segments
+where the uncertainty and potential bias are higher.
+
+
+
+\subsection{Final Test Metrics}
+\begin{table}[h]
+  \caption{Final Model Performance on Test Set}
+  \label{tab:final-metrics}
+  \begin{tabular}{lc}
+    \toprule
+    \textbf{Metric} & \textbf{Value} \\
+    \midrule
+    Mean Absolute Error (MAE) & 0.0264 \\
+    R-squared (R2) Score & 0.9956 \\
+    R-squared Score & 0.9956 \\
+    Root Mean Squared Error (RMSE) & 0.0603 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+%% --- 6. Deployment ---
+\section{Deployment}
+
+\subsection{6a Business Objectives Reflection and Deployment Recommendations}
+...
+
+\subsection{6a Business Objectives Reflection and Deployment Recommendations}
+6a) Reflection on business objectives and deployment recommendations
+
+We relate the current prototype to the business objectives and success criteria
+defined in the Business Understanding phase. The main objectives were: (1)
+provide realistic asking-price recommendations for new listings, (2) reduce
+manual effort and turnaround time for price estimation, (3) deliver meaningful
+market insights on price drivers, and (4) achieve reasonably consistent
+quality across segments.
+
+Our final XGBoost model (max\_depth = 4) reaches very strong accuracy on the
+held-out test set (MAE = 0.0264, RMSE = 0.0603, R² = 0.9956 on log-prices),
+far better than the trivial mean baseline. This satisfies the technical
+success criteria for predictive performance and enables actionable price
+recommendations that can be presented as a suggested price and a reasonable
+price range.
+
+Inference is fast (test predictions in a few hundredths of a second), so the
+system supports the objective of reducing manual valuation time and
+can be integrated into the listing workflow as an instant recommendation for
+agents and sellers. The exploratory analysis and model-based analysis
+(feature importance, segment-wise evaluation) provide interpretable patterns
+about which factors drive price, contributing to the “meaningful insights”
+objective.
+
+Bias and segment analysis showed that performance is very good for the main
+segments (apartments and houses in common districts), but weaker for small,
+under-represented districts and rare property types. Based on this, our
+deployment recommendation is to use the model as an internal decision-support
+tool rather than an automatic pricing engine: rely on it primarily for common
+segments, and flag predictions for rare districts or property types for manual
+review and potentially wider price ranges. Overall, the prototype meets the
+business objectives and data-mining success criteria at a proof-of-concept
+level, with understandable guidance on where additional caution is needed.
+
+\subsection{6b Ethical Aspects and Risks}
+...
+
+\subsection{6b Ethical Aspects and Risks}
+6b) Ethical aspects, risks and relation to business objectives
+
+The price recommendation system is used as decision support in a commercial
+real-estate context and would typically be classified as a limited-risk
+decision-support tool rather than a high-risk AI system. Nevertheless, there
+are relevant ethical and business risks that need to be considered alongside
+the original objectives and success criteria.
+
+The main risk is uneven model performance across segments, especially for
+under-represented districts and rare property types. Systematically higher
+errors in these segments could lead to systematic over- or under-valuation of
+certain regions or property categories, which may harm affected sellers or
+buyers and conflict with the objective of consistent recommendation quality.
+In addition, the model is trained on historical listing prices and may
+reinforce existing structural patterns (e.g. persistent under-pricing of some
+regions) rather than correcting them.
+
+From a transparency and accountability perspective, the model is a complex
+tree-based ensemble and individual predictions are not directly explainable.
+For deployment, it should therefore be well documented that the tool
+provides statistical estimates based on past listings and that human agents
+remain responsible for the final decision. The system should not be used as an
+automatic pricing authority without human oversight.
+
+To mitigate these risks, we recommend: (i) keeping a human-in-the-loop for all
+pricing decisions, (ii) explicitly flagging predictions for small segments
+with known higher error rates, (iii) monitoring performance and bias metrics
+over time and (iv) precisely communicating to users that the model relies on
+historical data and may inherit its limitations. These measures help align the
+deployment with the original business objectives and success criteria while
+acknowledging and managing ethical risks.
+
+\subsection{6c Monitoring Plan}
+...
+
+\subsection{6c Monitoring Plan}
+6c) Monitoring plan
+
+For a realistic deployment we propose a monitoring plan that tracks both
+technical performance and business-level behaviour of the model over time.
+
+On the technical side, we would log model inputs and predictions for all
+served listings (in an anonymised form where necessary) and periodically
+recompute evaluation metrics on recent data whenever ground-truth prices
+become available. At regular intervals (e.g. monthly or quarterly) we would
+recalculate MAE, RMSE and R² on recent transactions and repeat the
+segment-wise analysis by district and property type, using the same methodology
+as in our 5e bias analysis. Thresholds can be defined for global metrics and
+for selected key segments; if these thresholds are exceeded or if data
+distributions drift significantly, a retraining or recalibration process is
+triggered.
+
+On the business side, we would monitor how often agents override the suggested
+price, how large these overrides are, and whether there are systematic
+patterns by region or property type. This information complements the
+quantitative error metrics and helps assess whether the system still supports
+the business objectives of realistic pricing and reduced manual effort.
+
+All monitoring procedures and thresholds should be documented and reviewed
+periodically. In combination with regular retraining on updated data, this
+monitoring plan aims to keep the model aligned with the original success
+criteria and to detect emerging risks early.
+
+\subsection{6d Reproducibility Reflection}
+...
+
+\subsection{6d Reproducibility Reflection}
+6d) Reproducibility reflection
+
+Throughout the project we documented data preparation, modeling and evaluation
+steps in a knowledge graph using PROV-O and related vocabularies. This
+includes the main preprocessing operations, the exact hyper-parameters of the
+final XGBoost model, the train/validation/test split procedure (with fixed
+random seeds) and the evaluation metrics used. These records support
+reproducibility of the experiment by allowing another analyst to reconstruct
+the pipeline given access to the same raw data and software environment.
+
+However, some limitations remain. The original real-estate dataset may not be
+publicly accessible in exactly the same form in the future, and external
+state-of-the-art results (e.g. the Kaggle Random Forest solution) depend on
+third-party code and preprocessing choices that we do not control. In
+addition, the exact software versions and hardware characteristics of our
+environment are only partially captured, which may lead to small numerical
+differences in training.
+
+For deployment, we therefore recommend combining the existing provenance
+information with explicit versioning of code (e.g. git tags), environment
+descriptions (e.g. requirements files or container images) and data snapshots.
+If these elements are maintained together with the knowledge graph, the system
+can be retrained and audited in a reproducible way when the model is updated
+or re-evaluated in the future.
+
+
+
+\section{Conclusion}
+
+This report summarised the full CRISP-DM process for the real-estate price
+recommendation use case, including business understanding, data understanding,
+data preparation, modeling, evaluation and deployment considerations. The
+full experimental provenance was captured in a knowledge graph and used to
+automatically generate this document.
+
+\end{document}
