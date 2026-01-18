@@ -5,7 +5,7 @@ Final submission for Business Intelligence Assignment 3
 
 ## Project Overview
 
-This project analyzes real estate data from Portugal to develop insights and predictive models. The analysis includes data exploration, feature engineering, and machine learning model development, with the full experiment details documented in the final report.
+This project analyzes real estate data from Portugal to develop insights and predictive models. The analysis includes data exploration, feature engineering, and machine learning model development, with the full experiment details documented in the final report. 
 
 ## Project Structure
 
@@ -13,6 +13,17 @@ This project analyzes real estate data from Portugal to develop insights and pre
 - **`data/portugal_listings.csv`** - Dataset containing Portugal real estate listings
 - **`data/report/experiment_report.tex`** - Final experiment report with methodology and results
 - **`LICENSE`** - MIT License (see [License](#license) section)
+- 
+## Dataset
+
+This project uses the **<portugal_listings.csv>** dataset, released under the **MIT License**.
+
+Copyright (c) 2013 Mark Otto  
+Copyright (c) 2017 Andrew Fong  
+Copyright (c) 2024 Thomas Gaehtgens
+
+Source: <https://www.kaggle.com/datasets/luvathoms/portugal-real-estate-2024/data> (accessed: 2025-12-10)  
+License: MIT (see the dataset repository `LICENSE` file)
 
 ## Getting Started
 
@@ -61,3 +72,4 @@ For a complete list of dependencies, see [`pyproject.toml`](pyproject.toml).
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+The original dataset used for this project is licensed under the MIT License, scroll up for further information under the **Dataset** section.
