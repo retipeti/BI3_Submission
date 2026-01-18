@@ -16,7 +16,7 @@ This project analyzes real estate data from Portugal to develop insights and pre
 - 
 ## Dataset
 
-This project uses the **<portugal_listings.csv>** dataset, released under the **MIT License**.
+This project uses the **portugal_listings.csv** dataset, released under the **MIT License**.
 
 Copyright (c) 2013 Mark Otto  
 Copyright (c) 2017 Andrew Fong  
