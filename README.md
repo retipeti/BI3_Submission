@@ -1,5 +1,8 @@
 # BI3_Submission
 Final submission for Business Intelligence Assignment 3
+
+## Disclaimer - This repository will be public till the last day of February 2026!
+
 ## Project Overview
 
 This project analyzes real estate data from Portugal to develop insights and predictive models. The analysis includes data exploration, feature engineering, and machine learning model development, with the full experiment details documented in the final report.
@@ -58,5 +61,3 @@ For a complete list of dependencies, see [`pyproject.toml`](pyproject.toml).
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-Copyright (c) 2026 retipeti
